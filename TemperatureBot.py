@@ -1,7 +1,11 @@
 from datetime import datetime
 import asyncio
+from aiohttp.client import post
 import discord
 from discord.utils import get
+
+# create client
+client = discord.Client()
 
 def read(i):
     location = '/sys/bus/w1/devices/'+i+'/w1_slave'
@@ -17,20 +21,19 @@ def read(i):
     return_str = str(rounded_farenheit) + " °F"
     return return_str
 
-# ========================
-# Create Message Function
-# ========================
 
-async def mainloop(done):
-    post_time = 0
+# Create Message Function
+async def mainloop():
+    global done
+
+    post_time = 57
 
     now = datetime.now()
     minute = now.minute
-    print('here')
-    print(enabled)
-    print(done)
+
     if enabled == True and done == False and minute == post_time:
-        message = read(TempProbe)
+        #message = read(TempProbe)
+        message = 'test'
         await client.send_message(client.get_channel('874098096680886292'), message)
         done = True
     elif minute != post_time:
@@ -49,31 +52,11 @@ class MyCog(object):
             pass
     
     async def do_stuff(self):
-        await mainloop(done)
+        await mainloop()
     async def looping_function(self):
         while True:
             await self.do_stuff()
             await asyncio.sleep(1)
-
-if __name__ == "__main__":
-    # init globals
-    client = discord.Client()
-    TempProbe = "28-051760d567ff"
-    enabled = False
-    done = False
-
-    # read secret discord token
-    f=open("token.txt","r")
-    if f.mode == 'r':
-        discordToken = f.read()
-
-    print('thisyo')
-    client.run(discordToken)
-    print('this')
-
-    #loop = asyncio.get_event_loop()
-    #Daily_Poster = MyCog
-    #Daily_Poster(loop)
 
 @client.event
 async def on_message(message):
@@ -87,7 +70,7 @@ async def on_message(message):
             message.channel.fetchMessages()
 
             await client.delete_message(message)
-            print('clearning')
+            print('clearing')
         else:
             await client.delete_message(message)
             message = read(TempProbe)
@@ -100,4 +83,21 @@ async def on_ready():
     print(client.user.name)
     print(client.user.id)
     print('------')
-    enabled = True
+    enabled = True            
+
+if __name__ == "__main__":
+    # init globals
+    TempProbe = "28-051760d567ff"
+    enabled = False
+    done = False
+    
+    loop = asyncio.get_event_loop()
+    Daily_Poster = MyCog
+    Daily_Poster(loop)
+
+    # read secret discord token
+    f=open("token.txt","r")
+    if f.mode == 'r':
+        discordToken = f.read()
+
+    client.run(discordToken)
