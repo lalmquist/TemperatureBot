@@ -1,10 +1,5 @@
-import requests
-import json
-import time
 from datetime import datetime
 import asyncio
-import aiohttp
-import os
 import discord
 from discord.utils import get
 
@@ -43,7 +38,7 @@ async def mainloop():
     
     if enabled == True and Done == False and minute == post_time:
         message = read(TempProbe)
-        await client.send_message(client.get_channel('618116119848288276'), message)
+        await client.send_message(client.get_channel('874098096680886292'), message)
         Done = True
     elif minute != post_time:
         Done = False
@@ -84,7 +79,7 @@ async def on_message(message):
         else:
             await client.delete_message(message)
             message = read(TempProbe)
-            await client.send_message(client.get_channel('618116119848288276'), message)
+            await client.send_message(client.get_channel('874098096680886292'), message)
 
 @client.event
 async def on_ready():
