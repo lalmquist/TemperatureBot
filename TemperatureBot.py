@@ -3,11 +3,6 @@ import asyncio
 import discord
 from discord.utils import get
 
-client = discord.Client()
-enabled = False
-TempProbe = "28-051760d567ff"
-Done = False
-
 def read(i):
     location = '/sys/bus/w1/devices/'+i+'/w1_slave'
     tfile = open(location)
@@ -26,22 +21,20 @@ def read(i):
 # Create Message Function
 # ========================
 
-async def mainloop():
-    global enabled
-    global Done
-
+async def mainloop(done):
     post_time = 0
 
     now = datetime.now()
-    hour = now.hour
     minute = now.minute
-    
-    if enabled == True and Done == False and minute == post_time:
+    print('here')
+    print(enabled)
+    print(done)
+    if enabled == True and done == False and minute == post_time:
         message = read(TempProbe)
         await client.send_message(client.get_channel('874098096680886292'), message)
-        Done = True
+        done = True
     elif minute != post_time:
-        Done = False
+        done = False
 
 class MyCog(object):
     def __init__(self,bot):
@@ -56,12 +49,31 @@ class MyCog(object):
             pass
     
     async def do_stuff(self):
-        await mainloop()
+        await mainloop(done)
     async def looping_function(self):
         while True:
             await self.do_stuff()
             await asyncio.sleep(1)
 
+if __name__ == "__main__":
+    # init globals
+    client = discord.Client()
+    TempProbe = "28-051760d567ff"
+    enabled = False
+    done = False
+
+    # read secret discord token
+    f=open("token.txt","r")
+    if f.mode == 'r':
+        discordToken = f.read()
+
+    print('thisyo')
+    client.run(discordToken)
+    print('this')
+
+    #loop = asyncio.get_event_loop()
+    #Daily_Poster = MyCog
+    #Daily_Poster(loop)
 
 @client.event
 async def on_message(message):
@@ -89,14 +101,3 @@ async def on_ready():
     print(client.user.id)
     print('------')
     enabled = True
-
-
-loop = asyncio.get_event_loop()
-Daily_Poster = MyCog
-Daily_Poster(loop)
-
-f=open("token.txt","r")
-if f.mode == 'r':
-    discordToken = f.read()
-
-client.run(discordToken)
