@@ -7,18 +7,25 @@ from discord.utils import get
 # create client
 client = discord.Client()
 
+# read temperature from temperature probe on raspberry pi
+# returns fahrenheit
 def read(i):
-    location = '/sys/bus/w1/devices/'+i+'/w1_slave'
+    location = '/sys/bus/w1/devices/'+ i +'/w1_slave'
     tfile = open(location)
     text = tfile.read()
     tfile.close()
     secondline = text.split("\n")[1]
     temperaturedata = secondline.split(" ")[9]
     temperature = float(temperaturedata[2:])
+    
+    # Celcius
     celcius = temperature / 1000
-    farenheit = (celcius * 1.8) + 32
-    rounded_farenheit = round(farenheit,1)
-    return_str = str(rounded_farenheit) + " °F"
+
+    # Fahrenheit
+    fahrenheit = (celcius * 1.8) + 32
+    rounded_fahrenheit = round(fahrenheit,1)
+    return_str = str(rounded_fahrenheit) + " °F"
+    
     return return_str
 
 
@@ -26,19 +33,22 @@ def read(i):
 async def mainloop():
     global done
 
-    post_time = 57
+    # auto post temperature every hour (at minute 0)
+    post_time = 0
 
     now = datetime.now()
     minute = now.minute
 
+    # wait for bot to be ready and not already posted this hour
     if enabled == True and done == False and minute == post_time:
-        #message = read(TempProbe)
-        message = 'test'
+        message = read(TempProbe)
+        # post temperature in channel
         await client.send_message(client.get_channel('874098096680886292'), message)
         done = True
     elif minute != post_time:
         done = False
 
+# looping Cog
 class MyCog(object):
     def __init__(self,bot):
         self.bot = bot
@@ -53,24 +63,26 @@ class MyCog(object):
     
     async def do_stuff(self):
         await mainloop()
+
     async def looping_function(self):
         while True:
             await self.do_stuff()
+            # pause X seconds between main loops
             await asyncio.sleep(1)
 
 @client.event
 async def on_message(message):
-
+# if somebody posts in temp channel
   if str(message.channel) == "temperature":
-
     if str(message.author) != "TemperatureBot#0960":
-
-        if message.content == "clear" or message.content == "Clear":
-
+        
+        # delete channel messages
+        if message.content.lower() == "clear":
             message.channel.fetchMessages()
-
             await client.delete_message(message)
             print('clearing')
+            
+        # delete their message, then post temperature
         else:
             await client.delete_message(message)
             message = read(TempProbe)
